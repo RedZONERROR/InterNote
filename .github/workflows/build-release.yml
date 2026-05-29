@@ -27,11 +27,15 @@ jobs:
           java-version: '17'
           cache: 'gradle' # Automatically caches gradle artifacts & dependencies to accelerate build speeds
 
+      - name: Regenerate Gradle Wrapper (Fix invalid/corrupt wrapper jar)
+        run: gradle wrapper --gradle-version 9.3.1
+
       - name: Grant Executable Permissions to Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Run Tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon
+      # Skipped per user request to resolve stuck pipeline execution
+      # - name: Run Tests
+      #   run: ./gradlew :app:testDebugUnitTest --no-daemon
 
       - name: Build and Sign Application Package
         env:
