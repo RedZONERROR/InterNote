@@ -66,6 +66,7 @@ fun EditorScreen(
 
     var initialNoteLoaded by remember { mutableStateOf(false) }
     var originalNote: Note? by remember { mutableStateOf(null) }
+    var currentNoteId by remember { mutableStateOf(noteId) }
 
     // 1. Load initial note details if editing
     LaunchedEffect(noteId) {
@@ -88,9 +89,11 @@ fun EditorScreen(
         delay(600) // Debounce delay
         
         // Save execution block
-        if (noteId == -1) {
+        if (currentNoteId == -1) {
             if (title.isNotBlank() || contentValue.text.isNotBlank()) {
-                viewModel.createNote(title, contentValue.text, selectedFolderId, selectedColorTag)
+                val newId = viewModel.createNote(title, contentValue.text, selectedFolderId, selectedColorTag)
+                currentNoteId = newId
+                originalNote = viewModel.getNoteById(newId)
             }
         } else {
             val noteToSave = originalNote?.copy(
@@ -107,13 +110,13 @@ fun EditorScreen(
     }
 
     // 3. Lifecycle-aware Auto-Save (Saves instantly on pause or screen collapse)
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, currentNoteId, title, contentValue.text, selectedFolderId, selectedColorTag, originalNote) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
                 if (initialNoteLoaded) {
-                    if (noteId == -1) {
+                    if (currentNoteId == -1) {
                         if (title.isNotBlank() || contentValue.text.isNotBlank()) {
-                            viewModel.createNote(title, contentValue.text, selectedFolderId, selectedColorTag)
+                            viewModel.createNoteAsync(title, contentValue.text, selectedFolderId, selectedColorTag)
                         }
                     } else {
                         originalNote?.let {

@@ -6,6 +6,7 @@ import com.inter.data.local.entities.Folder
 import com.inter.data.local.entities.Note
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -21,18 +22,18 @@ class NoteRepository(
     private val context: Context,
     private val noteDao: NoteDao
 ) {
-    // Expose flows directly for UI observing
-    val activeNotes: Flow<List<Note>> = noteDao.getActiveNotes()
-    val pinnedNotes: Flow<List<Note>> = noteDao.getPinnedNotes()
-    val archivedNotes: Flow<List<Note>> = noteDao.getArchivedNotes()
-    val deletedNotes: Flow<List<Note>> = noteDao.getDeletedNotes()
-    val allFolders: Flow<List<Folder>> = noteDao.getAllFolders()
+    // Expose flows directly for UI observing with safety catch blocks
+    val activeNotes: Flow<List<Note>> = noteDao.getActiveNotes().catch { emit(emptyList()) }
+    val pinnedNotes: Flow<List<Note>> = noteDao.getPinnedNotes().catch { emit(emptyList()) }
+    val archivedNotes: Flow<List<Note>> = noteDao.getArchivedNotes().catch { emit(emptyList()) }
+    val deletedNotes: Flow<List<Note>> = noteDao.getDeletedNotes().catch { emit(emptyList()) }
+    val allFolders: Flow<List<Folder>> = noteDao.getAllFolders().catch { emit(emptyList()) }
 
-    fun getNotesInFolder(folderId: Int): Flow<List<Note>> = noteDao.getNotesInFolder(folderId)
+    fun getNotesInFolder(folderId: Int): Flow<List<Note>> = noteDao.getNotesInFolder(folderId).catch { emit(emptyList()) }
 
     fun searchNotes(query: String): Flow<List<Note>> {
         val searchQuery = "%$query%"
-        return noteDao.searchNotes(searchQuery)
+        return noteDao.searchNotes(searchQuery).catch { emit(emptyList()) }
     }
 
     suspend fun getNoteById(id: Int): Note? = withContext(Dispatchers.IO) {
@@ -207,7 +208,7 @@ class NoteRepository(
         exportFile
     }
 
-    // GDPR Right to Be Forgotten: Purges everything completely
+    // GDPR Right to Be Forgotten: Purges everything completely and safely preserving directory roots
     suspend fun purgeAllDataAndReset() = withContext(Dispatchers.IO) {
         // Safe reset database instance first & delete db file
         com.inter.data.local.AppDatabase.closeAndReset(context)
@@ -222,9 +223,17 @@ class NoteRepository(
         val themePrefs = context.getSharedPreferences("inter_note_prefs", Context.MODE_PRIVATE)
         themePrefs.edit().clear().commit()
 
-        // Overwrite and strip caches entirely
-        context.cacheDir.deleteRecursively()
-        context.filesDir.deleteRecursively()
+        // Overwrite and strip caches entirely without removing root directories
+        try {
+            context.cacheDir.listFiles()?.forEach { it.deleteRecursively() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            context.filesDir.listFiles()?.forEach { it.deleteRecursively() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     // Auto-seed database with everyday normal user utility notes when empty

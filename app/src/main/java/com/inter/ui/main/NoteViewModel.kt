@@ -154,17 +154,22 @@ class NoteViewModel(
         return repository.getNoteById(id)
     }
 
-    fun createNote(title: String, content: String, folderId: Int?, colorTag: String?) {
+    suspend fun createNote(title: String, content: String, folderId: Int?, colorTag: String?): Int {
+        val newNote = Note(
+            title = title,
+            content = content,
+            folderId = folderId,
+            colorTag = colorTag,
+            dateCreated = System.currentTimeMillis(),
+            dateModified = System.currentTimeMillis()
+        )
+        val newId = repository.insertNote(newNote)
+        return newId.toInt()
+    }
+
+    fun createNoteAsync(title: String, content: String, folderId: Int?, colorTag: String?) {
         viewModelScope.launch {
-            val newNote = Note(
-                title = title,
-                content = content,
-                folderId = folderId,
-                colorTag = colorTag,
-                dateCreated = System.currentTimeMillis(),
-                dateModified = System.currentTimeMillis()
-            )
-            repository.insertNote(newNote)
+            createNote(title, content, folderId, colorTag)
         }
     }
 
