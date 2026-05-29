@@ -61,8 +61,12 @@ class NoteViewModel(
     init {
         // Run automated 30-day trash retention check on model initiation and seed if empty
         viewModelScope.launch {
-            repository.autoPurgeOldTrash()
-            repository.seedDatabaseIfEmpty()
+            try {
+                repository.autoPurgeOldTrash()
+                repository.seedDatabaseIfEmpty()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

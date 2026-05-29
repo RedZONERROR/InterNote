@@ -106,32 +106,36 @@ class MainActivity : ComponentActivity() {
 
     // Dynamic Nougat+ (API 25) long-press Launcher Shortcuts setup
     private fun setupDynamicShortcuts() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            val shortcutManager = getSystemService(ShortcutManager::class.java) ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                val shortcutManager = getSystemService(ShortcutManager::class.java) ?: return
 
-            // 1. New note creation shortcut
-            val createShortcut = ShortcutInfo.Builder(this, "shortcut_create_new")
-                .setShortLabel("New Note")
-                .setLongLabel("Create a fresh secure note")
-                .setIcon(Icon.createWithResource(this, android.R.drawable.ic_input_add))
-                .setIntent(Intent(this, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    putExtra("action_trigger_new_note", true)
-                })
-                .build()
+                // 1. New note creation shortcut
+                val createShortcut = ShortcutInfo.Builder(this, "shortcut_create_new")
+                    .setShortLabel("New Note")
+                    .setLongLabel("Create a fresh secure note")
+                    .setIcon(Icon.createWithResource(this, android.R.drawable.ic_input_add))
+                    .setIntent(Intent(this, MainActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        putExtra("action_trigger_new_note", true)
+                    })
+                    .build()
 
-            // 2. Clear vault exploration search shortcut
-            val searchShortcut = ShortcutInfo.Builder(this, "shortcut_search_vault")
-                .setShortLabel("Search Notes")
-                .setLongLabel("Search your dynamic local vaults")
-                .setIcon(Icon.createWithResource(this, android.R.drawable.ic_menu_search))
-                .setIntent(Intent(this, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    putExtra("action_trigger_search", true)
-                })
-                .build()
+                // 2. Clear vault exploration search shortcut
+                val searchShortcut = ShortcutInfo.Builder(this, "shortcut_search_vault")
+                    .setShortLabel("Search Notes")
+                    .setLongLabel("Search your dynamic local vaults")
+                    .setIcon(Icon.createWithResource(this, android.R.drawable.ic_menu_search))
+                    .setIntent(Intent(this, MainActivity::class.java).apply {
+                        action = Intent.ACTION_VIEW
+                        putExtra("action_trigger_search", true)
+                    })
+                    .build()
 
-            shortcutManager.dynamicShortcuts = listOf(createShortcut, searchShortcut)
+                shortcutManager.dynamicShortcuts = listOf(createShortcut, searchShortcut)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
