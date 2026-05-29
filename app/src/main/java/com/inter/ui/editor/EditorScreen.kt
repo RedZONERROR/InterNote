@@ -31,6 +31,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.inter.data.local.entities.Folder
 import com.inter.data.local.entities.Note
 import com.inter.ui.main.NoteViewModel
+import com.inter.ui.theme.safeParseColor
 import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -176,7 +177,7 @@ fun EditorScreen(
                         Icon(
                             imageVector = Icons.Outlined.Palette,
                             contentDescription = "Select Tag Color",
-                            tint = if (selectedColorTag != null) Color(android.graphics.Color.parseColor(selectedColorTag)) else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (selectedColorTag != null) safeParseColor(selectedColorTag) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -220,7 +221,7 @@ fun EditorScreen(
                             Icon(
                                 Icons.Default.Folder,
                                 null,
-                                tint = Color(android.graphics.Color.parseColor(folder.colorHex))
+                                tint = safeParseColor(folder.colorHex)
                             )
                         }
                     )
@@ -259,7 +260,7 @@ fun EditorScreen(
                         }
 
                         paletteColors.forEach { colorStr ->
-                            val colorVal = Color(android.graphics.Color.parseColor(colorStr))
+                            val colorVal = safeParseColor(colorStr)
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)

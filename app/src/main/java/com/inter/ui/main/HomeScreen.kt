@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.inter.ui.theme.safeParseColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -268,7 +269,7 @@ fun HomeScreen(
                                     .padding(4.dp)
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(Color(android.graphics.Color.parseColor(col)))
+                                    .background(safeParseColor(col))
                                     .clickable { selectedFolderColor = col }
                                     .padding(4.dp)
                             ) {
@@ -410,7 +411,7 @@ fun FolderSelectorRow(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(Color(android.graphics.Color.parseColor(folder.colorHex)))
+                            .background(safeParseColor(folder.colorHex))
                     )
                 }
             )
@@ -456,7 +457,7 @@ fun ColorTagFilterRow(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(Color(android.graphics.Color.parseColor(hex)))
+                    .background(safeParseColor(hex))
                     .clickable { onColorSelected(if (isSelected) null else hex) }
                     .padding(2.dp)
             ) {
@@ -658,8 +659,7 @@ fun NoteCompactCard(
     onPermanentDelete: () -> Unit
 ) {
     val df = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    val baseTagColor = note.colorTag?.let { Color(android.graphics.Color.parseColor(it)) }
-        ?: Color(0xFF005AC1) // Default to high density signature blue
+    val baseTagColor = safeParseColor(note.colorTag)
 
     // Determine card background
     val cardBackground = if (note.isPinned) {

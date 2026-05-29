@@ -36,3 +36,13 @@ val HighDensityDarkSurfaceVariant = Color(0xFF434752)
 val HighDensityDarkOnSurfaceVariant = Color(0xFFC4C6D0)
 val HighDensityDarkOutline = Color(0xFF8E919F)
 
+fun safeParseColor(colorStr: String?, fallbackColor: Color = Color(0xFF005AC1)): Color {
+    if (colorStr.isNullOrBlank()) return fallbackColor
+    return try {
+        Color(android.graphics.Color.parseColor(colorStr))
+    } catch (e: Exception) {
+        fallbackColor
+    }
+}
+
+
