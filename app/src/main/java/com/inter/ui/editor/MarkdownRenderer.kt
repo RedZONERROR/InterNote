@@ -18,8 +18,8 @@ object MarkdownRenderer {
                 val isBullet = line.startsWith("- ") || line.startsWith("* ")
                 
                 val cleanLine = when {
-                    isHeader -> "⌗  " + line.substring(2)
-                    isBullet -> "•  " + line.substring(2)
+                    isHeader -> "⌗ " + line.substring(2)
+                    isBullet -> "• " + line.substring(2)
                     else -> line
                 }
 
@@ -44,7 +44,7 @@ object MarkdownRenderer {
                             color = if (darkTheme) Color(0xFF81C784) else Color(0xFF388E3C)
                         ),
                         startIdx,
-                        startIdx + 3
+                        (startIdx + 2).coerceAtMost(endIdx)
                     )
                 }
 
