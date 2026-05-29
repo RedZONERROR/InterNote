@@ -28,7 +28,7 @@
         <!-- Dynamic Files Provider for GDPR Portability Export ZIP compile -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -38,7 +38,7 @@
 
         <!-- Quick Settings capturing notification drawer pull-down Tile service -->
         <service
-            android:name="com.example.widget.QuickNoteTileService"
+            android:name="com.inter.widget.QuickNoteTileService"
             android:icon="@android:drawable/ic_menu_add"
             android:label="Quick Note"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
@@ -50,7 +50,7 @@
 
         <!-- Home Screen widget: Quick capture button widget -->
         <receiver
-            android:name="com.example.widget.QuickNoteWidgetProvider"
+            android:name="com.inter.widget.QuickNoteWidgetProvider"
             android:label="Note Quick Capture Button"
             android:exported="false">
             <intent-filter>
@@ -63,7 +63,7 @@
 
         <!-- Home Screen widget: Scrollable item collection widget -->
         <receiver
-            android:name="com.example.widget.NoteListWidgetProvider"
+            android:name="com.inter.widget.NoteListWidgetProvider"
             android:label="Notes ListView Dashboard"
             android:exported="false">
             <intent-filter>
@@ -76,7 +76,7 @@
 
         <!-- Scrollable ListView elements RemoteViewsFactory adapter updates service -->
         <service
-            android:name="com.example.widget.NoteListWidgetService"
+            android:name="com.inter.widget.NoteListWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
 

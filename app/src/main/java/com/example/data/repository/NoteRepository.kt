@@ -209,9 +209,8 @@ class NoteRepository(
 
     // GDPR Right to Be Forgotten: Purges everything completely
     suspend fun purgeAllDataAndReset() = withContext(Dispatchers.IO) {
-        // Clear database
-        noteDao.clearAllNotes()
-        noteDao.clearAllFolders()
+        // Safe reset database instance first & delete db file
+        com.example.data.local.AppDatabase.closeAndReset(context)
 
         // Purge secure crypt configuration keys
         val cryptPrefs = context.getSharedPreferences("secure_crypt_prefs", Context.MODE_PRIVATE)

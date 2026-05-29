@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.inter"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
@@ -91,7 +91,7 @@ dependencies {
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.coil.compose)
-  implementation("net.zetetic:android-database-sqlcipher:4.5.4")
+  // implementation("net.zetetic:android-database-sqlcipher:4.5.4")
   implementation(libs.converter.moshi)
   // implementation(libs.firebase.ai)
   implementation(libs.kotlinx.coroutines.android)
