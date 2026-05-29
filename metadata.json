@@ -1,0 +1,6 @@
+{
+  "name": "Inter Note App",
+  "description": "A professional, full-featured, private note-taking application tailored for power users, fully compliant with GDPR and EAA rules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

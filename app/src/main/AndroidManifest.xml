@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyApplication"
+        tools:replace="android:allowBackup">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.MyApplication"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Dynamic Files Provider for GDPR Portability Export ZIP compile -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Quick Settings capturing notification drawer pull-down Tile service -->
+        <service
+            android:name="com.example.widget.QuickNoteTileService"
+            android:icon="@android:drawable/ic_menu_add"
+            android:label="Quick Note"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Home Screen widget: Quick capture button widget -->
+        <receiver
+            android:name="com.example.widget.QuickNoteWidgetProvider"
+            android:label="Note Quick Capture Button"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_note_info" />
+        </receiver>
+
+        <!-- Home Screen widget: Scrollable item collection widget -->
+        <receiver
+            android:name="com.example.widget.NoteListWidgetProvider"
+            android:label="Notes ListView Dashboard"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_note_list_info" />
+        </receiver>
+
+        <!-- Scrollable ListView elements RemoteViewsFactory adapter updates service -->
+        <service
+            android:name="com.example.widget.NoteListWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

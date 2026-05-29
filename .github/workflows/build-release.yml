@@ -1,0 +1,78 @@
+name: Build & Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger build on publication tags (e.g., v1.0.0, v1.1.2)
+  workflow_dispatch: # Enable manual builds directly from GitHub CLI or Dashboard
+
+permissions:
+  contents: write # Grants permissions to create releases and upload build assets
+
+jobs:
+  build:
+    name: Build & Test Android App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for git tags & accurate release logs
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle' # Automatically caches gradle artifacts & dependencies to accelerate build speeds
+
+      - name: Grant Executable Permissions to Gradle Wrapper
+        run: chmod +x gradlew
+
+      - name: Run Tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
+
+      - name: Build and Sign Application Package
+        env:
+          KEYSTORE_BASE64: ${{ secrets.PLAY_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "--- Securing Release Keystore ---"
+            echo -n "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
+            export KEYSTORE_PATH=$(pwd)/my-upload-key.jks
+            
+            echo "--- Compiling Production Release Build ---"
+            ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon
+          else
+            echo "--- Warning: PLAY_KEYSTORE_BASE64 Secret not configured ---"
+            echo "--- Compiling Debug Distribution Artifacts as Fallback ---"
+            ./gradlew :app:assembleDebug --no-daemon
+            
+            # Re-map directory locations for upload steps
+            mkdir -p app/build/outputs/apk/release
+            cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk
+          fi
+
+      - name: Archive Construction Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-outputs
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+
+      - name: Publish Draft GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') # Secure run constraint: only trigger publish on tag events
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: false
+          files: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/*.aab
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
