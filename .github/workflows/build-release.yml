@@ -5,6 +5,23 @@ on:
     tags:
       - 'v*' # Trigger build on publication tags (e.g., v1.0.0, v1.1.2)
   workflow_dispatch: # Enable manual builds directly from GitHub CLI or Dashboard
+    inputs:
+      build_type:
+        description: 'Choose build type (release or debug)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      publish_release:
+        description: 'Publish and draft a GitHub release?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 permissions:
   contents: write # Grants permissions to create releases and upload build assets
@@ -43,21 +60,40 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
+          # 1. Determine Build Type & Publish options
+          BUILD_TYPE="release"
+          PUBLISH="false"
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            BUILD_TYPE="${{ github.event.inputs.build_type }}"
+            PUBLISH="${{ github.event.inputs.publish_release }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            BUILD_TYPE="release"
+            PUBLISH="true"
+          fi
+          
+          echo "Selected Build Type: $BUILD_TYPE"
+          echo "Selected Publish Option: $PUBLISH"
+          echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+          echo "PUBLISH_RELEASE=$PUBLISH" >> $GITHUB_ENV
+
+          # 2. Extract keystore if provided in secrets, otherwise use the project-embedded one
           if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "--- Securing Release Keystore ---"
+            echo "--- Securing Release Keystore from Play Store Base64 ---"
             echo -n "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
             export KEYSTORE_PATH=$(pwd)/my-upload-key.jks
-            
+          else
+            echo "--- Using Project-Embedded Release Keystore ---"
+            export KEYSTORE_PATH=$(pwd)/my-upload-key.jks
+          fi
+
+          # 3. Compile base on selection
+          if [ "$BUILD_TYPE" = "release" ]; then
             echo "--- Compiling Production Release Build ---"
             ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon
           else
-            echo "--- Warning: PLAY_KEYSTORE_BASE64 Secret not configured ---"
-            echo "--- Compiling Debug Distribution Artifacts as Fallback ---"
+            echo "--- Compiling Development Debug Build ---"
             ./gradlew :app:assembleDebug --no-daemon
-            
-            # Re-map directory locations for upload steps
-            mkdir -p app/build/outputs/apk/release
-            cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/release/app-release.apk
           fi
 
       - name: Archive Construction Artifacts
@@ -65,18 +101,18 @@ jobs:
         with:
           name: package-outputs
           path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/apk/**/*.apk
+            app/build/outputs/bundle/**/*.aab
 
       - name: Publish Draft GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') # Secure run constraint: only trigger publish on tag events
+        if: env.PUBLISH_RELEASE == 'true'
         uses: softprops/action-gh-release@v2
         with:
           draft: true
           prerelease: false
           files: |
-            app/build/outputs/apk/release/app-release.apk
-            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/apk/**/*.apk
+            app/build/outputs/bundle/**/*.aab
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

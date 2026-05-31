@@ -26,9 +26,9 @@ android {
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
       storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
+      storePassword = System.getenv("STORE_PASSWORD") ?: "password123"
       keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      keyPassword = System.getenv("KEY_PASSWORD") ?: "password123"
     }
     create("debugConfig") {
       val keystoreFile = file("${rootDir}/debug.keystore")
@@ -134,4 +134,34 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
+}
+
+tasks.register("generateReleaseKeystore") {
+    doLast {
+        val jksFile = file("${rootDir}/my-upload-key.jks")
+        if (!jksFile.exists()) {
+            val pb = ProcessBuilder(
+                "keytool", "-genkeypair",
+                "-v",
+                "-keystore", jksFile.absolutePath,
+                "-alias", "upload",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-validity", "10000",
+                "-storepass", "password123",
+                "-keypass", "password123",
+                "-dname", "CN=My Note App, O=My Note App Org, C=US"
+            )
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT)
+            val process = pb.start()
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                throw GradleException("Failed to generate keystore, exit code: $exitCode")
+            }
+            println("Keystore generated successfully at ${jksFile.absolutePath}")
+        } else {
+            println("Keystore already exists.")
+        }
+    }
 }

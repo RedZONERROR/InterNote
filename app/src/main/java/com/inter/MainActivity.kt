@@ -143,19 +143,23 @@ class MainActivity : ComponentActivity() {
     private fun processIncomingIntent(incomingIntent: Intent?, controller: NavController) {
         if (incomingIntent == null) return
 
-        if (incomingIntent.getBooleanExtra("action_trigger_new_note", false)) {
-            incomingIntent.removeExtra("action_trigger_new_note")
-            controller.navigate("editor/-1") {
-                popUpTo("home") { saveState = true }
-            }
-        } else if (incomingIntent.getBooleanExtra("action_trigger_open_note", false)) {
-            val id = incomingIntent.getIntExtra("EXTRA_NOTE_ID", -1)
-            incomingIntent.removeExtra("action_trigger_open_note")
-            if (id != -1) {
-                controller.navigate("editor/$id") {
+        try {
+            if (incomingIntent.getBooleanExtra("action_trigger_new_note", false)) {
+                incomingIntent.removeExtra("action_trigger_new_note")
+                controller.navigate("editor/-1") {
                     popUpTo("home") { saveState = true }
                 }
+            } else if (incomingIntent.getBooleanExtra("action_trigger_open_note", false)) {
+                val id = incomingIntent.getIntExtra("EXTRA_NOTE_ID", -1)
+                incomingIntent.removeExtra("action_trigger_open_note")
+                if (id != -1) {
+                    controller.navigate("editor/$id") {
+                        popUpTo("home") { saveState = true }
+                    }
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

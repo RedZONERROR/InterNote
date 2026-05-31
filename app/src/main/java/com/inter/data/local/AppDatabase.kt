@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.inter.data.local.entities.Folder
 import com.inter.data.local.entities.Note
 
-@Database(entities = [Note::class, Folder::class], version = 1, exportSchema = false)
+@Database(entities = [Note::class, Folder::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
