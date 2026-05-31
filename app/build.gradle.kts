@@ -24,8 +24,27 @@ android {
 
   signingConfigs {
     create("release") {
+      val isCustomPath = System.getenv("KEYSTORE_PATH") != null
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
+      val keystoreFile = file(keystorePath)
+      
+      // Auto-decode from base64 if needed to avoid git binary corruption
+      if (!isCustomPath) {
+        val base64File = file("${rootDir}/my-upload-key.jks.base64")
+        if (base64File.exists()) {
+          try {
+            val base64Text = base64File.readText().replace("\\s".toRegex(), "")
+            val decoded = Base64.getDecoder().decode(base64Text)
+            keystoreFile.parentFile?.mkdirs()
+            keystoreFile.writeBytes(decoded)
+            println("Decoded base64 upload keystore of length ${decoded.size} to ${keystoreFile.absolutePath}")
+          } catch (e: Exception) {
+            e.printStackTrace()
+          }
+        }
+      }
+
+      storeFile = keystoreFile
       storePassword = System.getenv("STORE_PASSWORD") ?: "password123"
       keyAlias = "upload"
       keyPassword = System.getenv("KEY_PASSWORD") ?: "password123"
@@ -162,6 +181,15 @@ tasks.register("generateReleaseKeystore") {
             println("Keystore generated successfully at ${jksFile.absolutePath}")
         } else {
             println("Keystore already exists.")
+        }
+
+        // Also generate/update base64 file if JKS file exists
+        if (jksFile.exists()) {
+            val base64File = file("${rootDir}/my-upload-key.jks.base64")
+            val bytes = jksFile.readBytes()
+            val base64String = Base64.getEncoder().encodeToString(bytes)
+            base64File.writeText(base64String)
+            println("Base64 representation written successfully to ${base64File.absolutePath}")
         }
     }
 }

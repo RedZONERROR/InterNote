@@ -1,6 +1,8 @@
 # Treat all jar files as binary to avoid corruption due to line ending conversion
 *.jar binary
 gradle-wrapper.jar binary
+*.jks binary
+*.keystore binary
 
 # Ensure gradlew has LF line endings and is executable
 gradlew text eol=lf
